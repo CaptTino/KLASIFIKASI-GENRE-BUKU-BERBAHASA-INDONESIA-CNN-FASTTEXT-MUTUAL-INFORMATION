@@ -1,0 +1,7 @@
+streamlit
+tensorflow
+numpy
+pickle-mixin
+nltk
+Sastrawi
+scikit-learn
