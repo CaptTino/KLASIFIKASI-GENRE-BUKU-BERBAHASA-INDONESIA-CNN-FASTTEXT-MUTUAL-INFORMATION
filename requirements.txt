@@ -4,4 +4,6 @@ numpy
 pickle-mixin
 nltk
 Sastrawi
+h5py
+gdown
 scikit-learn
