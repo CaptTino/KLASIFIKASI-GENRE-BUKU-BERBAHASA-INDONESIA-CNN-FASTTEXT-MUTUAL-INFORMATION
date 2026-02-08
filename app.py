@@ -2,11 +2,16 @@ import streamlit as st
 import pickle
 import numpy as np
 import re
+import os
+import gdown
+import nltk
+
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import InputLayer
+
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from nltk.corpus import stopwords
-import nltk
 
 # =====================
 # SETUP
@@ -19,12 +24,31 @@ st.set_page_config(
 
 nltk.download('stopwords')
 
+MODEL_PATH = "cnn_fasttext_mi.keras"
+FILE_ID = "1XZL0u8fMjb91YBGHwKVAu_xqp45y7qaH" 
+
+if not os.path.exists(MODEL_PATH):
+    url = f"https://drive.google.com/uc?id={FILE_ID}"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
 # =====================
 # LOAD ASSETS
 # =====================
 @st.cache_resource
 def load_assets():
-    model = load_model("cnn_fasttext_mi.keras")
+
+    # Fix untuk model Keras lama (error batch_shape)
+    class FixedInputLayer(InputLayer):
+        def __init__(self, *args, **kwargs):
+            if "batch_shape" in kwargs:
+                kwargs["batch_input_shape"] = kwargs.pop("batch_shape")
+            super().__init__(*args, **kwargs)
+
+    model = load_model(
+        MODEL_PATH,
+        compile=False,
+        custom_objects={"InputLayer": FixedInputLayer}
+    )
 
     with open("tokenizer.pkl", "rb") as f:
         tokenizer = pickle.load(f)
@@ -112,3 +136,4 @@ if st.button("🔍 Prediksi Genre"):
                 st.code(" ".join(tokens))
                 st.write("**Setelah Seleksi Mutual Information:**")
                 st.code(filtered_text)
+
